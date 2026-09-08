@@ -114,6 +114,7 @@
   .pit-strip{
     display:flex; gap:6px; overflow-x:auto; scroll-snap-type:x mandatory;
     scrollbar-width:none; -ms-overflow-style:none; padding-bottom:2px;
+    touch-action:pan-x;
   }
   .pit-strip::-webkit-scrollbar{ display:none; }
   .pit-tile{
@@ -134,12 +135,16 @@
   }
   .pit-tile .play-badge i{ color:#fff; font-size:18px; text-shadow:0 1px 4px rgba(0,0,0,0.6); }
 
-  .pit-dots{ display:flex; gap:5px; justify-content:center; margin-top:1px; }
+  .pit-dots{ display:flex; gap:2px; justify-content:center; margin-top:1px; }
   .pit-dots .dot{
-    width:5px; height:5px; border-radius:50%; background:rgba(242,240,234,0.25);
-    transition:width .2s, background .2s; cursor:pointer;
+    width:22px; height:20px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; -webkit-tap-highlight-color:transparent;
   }
-  .pit-dots .dot.active{ background: var(--brand-accent); width:14px; border-radius:3px; }
+  .pit-dots .dot::after{
+    content:''; width:5px; height:5px; border-radius:50%; background:rgba(242,240,234,0.25);
+    transition:width .2s, background .2s;
+  }
+  .pit-dots .dot.active::after{ background: var(--brand-accent); width:14px; border-radius:3px; }
 
   /* Lightbox */
   .lightbox{
