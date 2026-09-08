@@ -32,7 +32,7 @@
     padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
   }
 
-  .card-scene{ width:min(92vw, 46dvh, 340px); aspect-ratio:0.42/1; perspective:1600px; }
+  .card-scene{ width:min(94vw, 50dvh, 360px); aspect-ratio:0.42/1; perspective:1600px; }
   .card{
     position:relative; width:100%; height:100%; cursor:pointer;
     transition: transform .7s cubic-bezier(.2,.8,.2,1); transform-style:preserve-3d;
@@ -90,7 +90,7 @@
     padding:8px 10px; background:rgba(0,0,0,0.2);
   }
   .telemetry p{
-    font-family:'JetBrains Mono',monospace; font-size:10px; line-height:1.5; color:rgba(242,240,234,0.75);
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; line-height:1.5; color:rgba(242,240,234,0.75);
     margin:0; text-align:center;
   }
   .telemetry .tag{ color: var(--brand-accent); }
@@ -189,7 +189,7 @@
   }
 
   .foot-row{ display:flex; justify-content:space-between; align-items:center; }
-  .foot-row .company{ font-family:'Anton',sans-serif; font-size:11px; letter-spacing:0.5px; color: var(--white); }
+  .foot-row .company{ font-family:'Anton',sans-serif; font-size:9px; letter-spacing:0.5px; color: var(--white); }
   .tap-hint{ font-size:8px; font-family:'JetBrains Mono',monospace; color:rgba(242,240,234,0.4); letter-spacing:.05em;}
 
   /* BACK */
@@ -253,7 +253,6 @@
   .verified-label{ font-family:'Anton',sans-serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; color: var(--brand-accent); margin:0 0 4px; }
   .site{ font-size:11px; color: var(--white); margin:0; font-family:'JetBrains Mono',monospace; }
 
-  .tap-caption{ font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(242,240,234,0.4); margin-top:16px; letter-spacing:.03em; }
 </style>
 </head>
 <body>
@@ -321,7 +320,7 @@
           </button>
 
           <div class="foot-row">
-            <span class="company">HAOJUE</span>
+            <span class="company">HAOJUE.EC</span>
             <span class="tap-hint">TOCA PARA VER MÁS ›</span>
           </div>
         </div>
@@ -353,8 +352,6 @@
 
     </div>
   </div>
-
-  <p class="tap-caption">Toca la tarjeta para ver el código QR</p>
 
   <div class="lightbox" id="lightbox">
     <div class="lightbox-close" id="lightboxClose"><i class="fa-solid fa-xmark"></i></div>
