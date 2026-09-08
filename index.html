@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0B0C0E">
+<link rel="apple-touch-icon" href="icon.png">
+<title>Tarjeta digital · Haojue Motorcycles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://use.typekit.net/oaa6gvi.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --asphalt:#0B0C0E; --carbon:#151719; --carbon-soft:#1D2023;
+    --brand-primary:#173F73; --brand-accent:#E10600; --white:#F2F0EA;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--asphalt);
+    background-image: radial-gradient(circle at 50% 0%, rgba(225,6,0,0.10), transparent 55%);
+    color: var(--white);
+    font-family:'Space Grotesk', sans-serif;
+    min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+
+  .card-scene{ width:min(92vw, 46dvh, 340px); aspect-ratio:0.42/1; perspective:1600px; }
+  .card{
+    position:relative; width:100%; height:100%; cursor:pointer;
+    transition: transform .7s cubic-bezier(.2,.8,.2,1); transform-style:preserve-3d;
+  }
+  .card.flipped{ transform: rotateY(180deg); }
+
+  .face{
+    position:absolute; inset:0; border-radius:14px; overflow:hidden;
+    backface-visibility:hidden; box-shadow:0 30px 60px -20px rgba(0,0,0,0.7);
+    border:1px solid rgba(255,255,255,0.06);
+  }
+
+  .checker-strip{
+    height:9px; width:100%; flex-shrink:0;
+    background-image: repeating-conic-gradient(#F2F0EA 0% 25%, #0B0C0E 0% 50%);
+    background-size:9px 9px;
+  }
+
+  .face-front{ display:flex; flex-direction:column; background: var(--carbon); }
+
+  .plate{
+    flex-shrink:0; position:relative; padding:16px 18px 14px; display:flex; flex-direction:column; align-items:center; gap:8px;
+    background:
+      repeating-linear-gradient(115deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 6px),
+      linear-gradient(165deg, var(--carbon-soft) 0%, var(--carbon) 100%);
+  }
+
+  .main-logo{ margin:0 0 4px; display:flex; justify-content:center; }
+  .main-logo img{ width:78%; max-width:200px; height:auto; display:block; }
+
+  .number-roundel{ position:relative; width:100px; height:100px; margin:2px 0 0; }
+  .number-roundel svg{ position:absolute; inset:0; width:100%; height:100%; }
+  .number-roundel img{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:88px; height:88px; border-radius:50%; object-fit:cover; display:block;
+  }
+  .number-roundel .bib{
+    position:absolute; bottom:-3px; right:-3px; background: var(--brand-accent); color:#fff;
+    font-family:'Anton',sans-serif; font-size:9px; padding:2px 5px; border-radius:4px; letter-spacing:.5px;
+    border:1.5px solid var(--asphalt);
+  }
+
+  .driver-name{
+    font-family:'filson-pro', sans-serif; font-weight:700; font-size:22px; letter-spacing:0.3px; text-align:center;
+    margin:6px 0 0; color:var(--white); text-transform:uppercase; line-height:1.05;
+  }
+  .driver-role{
+    font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.12em; text-transform:uppercase;
+    color: var(--brand-accent); margin:0; display:flex; align-items:center; gap:6px;
+  }
+  .driver-role::before, .driver-role::after{ content:''; width:14px; height:1px; background:rgba(242,240,234,0.35); }
+
+  .telemetry{
+    margin-top:4px; width:100%; border:1px dashed rgba(242,240,234,0.18); border-radius:6px;
+    padding:8px 10px; background:rgba(0,0,0,0.2);
+  }
+  .telemetry p{
+    font-family:'JetBrains Mono',monospace; font-size:10px; line-height:1.5; color:rgba(242,240,234,0.75);
+    margin:0; text-align:center;
+  }
+  .telemetry .tag{ color: var(--brand-accent); }
+
+  .stripe-divider{
+    height:8px; flex-shrink:0;
+    background: linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-primary) 38%, var(--brand-accent) 38%, var(--brand-accent) 100%);
+  }
+
+  .pit-lane{
+    flex:1; min-height:0; padding:12px 18px 14px; display:flex; flex-direction:column; gap:10px;
+    background: var(--asphalt); position:relative;
+  }
+
+  .section-label{
+    font-family:'JetBrains Mono',monospace; font-size:8.5px; letter-spacing:.1em; text-transform:uppercase;
+    color:rgba(242,240,234,0.5); margin:0; display:flex; align-items:center; gap:5px;
+  }
+  .section-label i{ color: var(--brand-accent); font-size:8px; }
+
+  .pit-strip{
+    display:flex; gap:6px; overflow-x:auto; scroll-snap-type:x mandatory;
+    scrollbar-width:none; -ms-overflow-style:none; padding-bottom:2px;
+  }
+  .pit-strip::-webkit-scrollbar{ display:none; }
+  .pit-tile{
+    flex:0 0 44%; aspect-ratio:1; border-radius:5px; background:rgba(255,255,255,0.04);
+    display:flex; align-items:center; justify-content:center; color:rgba(242,240,234,0.28); font-size:13px;
+    border:1px solid rgba(242,240,234,0.1); position:relative; overflow:hidden; cursor:pointer;
+    scroll-snap-align:start; background-size:cover; background-position:center; padding:0;
+  }
+  .pit-tile::after{
+    content:''; position:absolute; top:0; left:0; width:9px; height:9px;
+    background-image: repeating-conic-gradient(#F2F0EA 0% 25%, transparent 0% 50%);
+    background-size:4px 4px; opacity:0.5;
+  }
+  .pit-tile video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .pit-tile .play-badge{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,0.35);
+  }
+  .pit-tile .play-badge i{ color:#fff; font-size:18px; text-shadow:0 1px 4px rgba(0,0,0,0.6); }
+
+  .pit-dots{ display:flex; gap:5px; justify-content:center; margin-top:1px; }
+  .pit-dots .dot{
+    width:5px; height:5px; border-radius:50%; background:rgba(242,240,234,0.25);
+    transition:width .2s, background .2s; cursor:pointer;
+  }
+  .pit-dots .dot.active{ background: var(--brand-accent); width:14px; border-radius:3px; }
+
+  /* Lightbox */
+  .lightbox{
+    position:fixed; inset:0; background:rgba(4,5,6,0.94); z-index:50;
+    display:none; align-items:center; justify-content:center; padding:24px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .lightbox.open{ display:flex; }
+  .lightbox img, .lightbox video{
+    max-width:100%; max-height:100%; border-radius:8px; box-shadow:0 20px 50px -10px rgba(0,0,0,0.7);
+  }
+  .lightbox-close{
+    position:absolute; top:max(18px, env(safe-area-inset-top)); right:max(18px, env(safe-area-inset-right));
+    width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);
+    color:#fff; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .lightbox-nav{
+    position:absolute; top:50%; transform:translateY(-50%); width:42px; height:42px; border-radius:50%;
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#fff; font-size:16px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .lightbox-prev{ left:max(14px, env(safe-area-inset-left)); }
+  .lightbox-next{ right:max(14px, env(safe-area-inset-right)); }
+
+  .social-row{ display:flex; gap:8px; justify-content:center; }
+  .social-row a{
+    width:27px; height:27px; border-radius:6px; background:rgba(255,255,255,0.05);
+    display:flex; align-items:center; justify-content:center; color:var(--white);
+    text-decoration:none; font-size:11px; border:1px solid rgba(242,240,234,0.12); transition:.2s;
+  }
+  .social-row a:hover{ background: var(--brand-accent); border-color: var(--brand-accent); }
+
+  .box-btn{
+    background: var(--brand-accent); color:#fff; border:none; border-radius:18px;
+    font-family:'Anton',sans-serif; font-size:12px; letter-spacing:0.6px;
+    padding:9px 10px; display:flex; align-items:center; justify-content:center; gap:7px;
+    cursor:pointer; text-transform:uppercase; position:relative; overflow:hidden;
+  }
+  .box-btn i{ font-size:12px; }
+  .box-btn::before{
+    content:''; position:absolute; left:0; top:0; bottom:0; width:5px;
+    background-image: repeating-conic-gradient(#fff 0% 25%, transparent 0% 50%); background-size:5px 5px; opacity:0.5;
+  }
+
+  .foot-row{ display:flex; justify-content:space-between; align-items:center; }
+  .foot-row .company{ font-family:'Anton',sans-serif; font-size:11px; letter-spacing:0.5px; color: var(--white); }
+  .tap-hint{ font-size:8px; font-family:'JetBrains Mono',monospace; color:rgba(242,240,234,0.4); letter-spacing:.05em;}
+
+  /* BACK */
+  .face-back{
+    transform: rotateY(180deg);
+    background: var(--carbon); display:flex; flex-direction:column;
+  }
+  .back-body{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:24px;
+  }
+
+  .flag-medal{
+    position:relative; width:78px; height:78px; border-radius:50%; overflow:hidden;
+    box-shadow:0 8px 20px -6px rgba(0,0,0,0.6);
+    background: var(--brand-accent); display:flex; align-items:center; justify-content:center;
+  }
+  .flag-medal i{ color:#fff; font-size:28px; }
+  .flag-medal svg{ width:44px; height:44px; overflow:visible; }
+  .flag-medal .check-path{
+    fill:none; stroke:#fff; stroke-width:9; stroke-linecap:round; stroke-linejoin:round;
+    stroke-dasharray:1; stroke-dashoffset:1;
+  }
+  .flag-medal .check-path.animate{
+    animation: draw-check .6s cubic-bezier(.4,0,.2,1) both;
+  }
+  @keyframes draw-check{
+    to{ stroke-dashoffset:0; }
+  }
+
+  .qr-holder{ background:#fff; padding:10px; border-radius:8px; box-shadow:0 10px 24px -10px rgba(0,0,0,0.4); border:2px solid var(--brand-primary); }
+
+  .back-copy{ text-align:center; }
+  .verified-label{ font-family:'Anton',sans-serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; color: var(--brand-accent); margin:0 0 4px; }
+  .site{ font-size:11px; color: var(--white); margin:0; font-family:'JetBrains Mono',monospace; }
+
+  .tap-caption{ font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(242,240,234,0.4); margin-top:16px; letter-spacing:.03em; }
+</style>
+</head>
+<body>
+
+  <div class="card-scene">
+    <div class="card" id="cardEl">
+
+      <div class="face face-front">
+        <div class="checker-strip"></div>
+
+        <div class="plate">
+          <div class="main-logo">
+            <img src="logo_wh.png" alt="Haojue Motorcycles">
+          </div>
+
+          <div class="number-roundel">
+            <svg viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="38" fill="none" stroke="#173F73" stroke-width="2"/>
+            </svg>
+            <img src="perfil.jpeg" alt="Geraldo Ginocchio">
+            <span class="bib">N.07</span>
+          </div>
+
+          <p class="driver-name">Geraldo Ginocchio</p>
+          <p class="driver-role">Asesor Comercial</p>
+
+          <div class="telemetry">
+            <p><span class="tag">[EQUIPO]</span> Changzhou Haojue Suzuki</p>
+            <p>"Asesor comercial de motocicletas, especialista en movilidad de alta calidad respaldada por la ingeniería global de Suzuki y Haojue."</p>
+          </div>
+        </div>
+
+        <div class="stripe-divider"></div>
+
+        <div class="pit-lane">
+          <p class="section-label"><i class="fa-solid fa-flag-checkered"></i> Modelos destacados</p>
+          <div class="pit-strip" id="pitStrip">
+            <!-- Sube estos 4 archivos junto al index.html: 3 fotos + 1 video -->
+            <div class="pit-tile" style="background-image:url('modelo-1.jpg')" onclick="openLightbox(0)"></div>
+            <div class="pit-tile" style="background-image:url('modelo-2.jpg')" onclick="openLightbox(1)"></div>
+            <div class="pit-tile" style="background-image:url('modelo-3.jpg')" onclick="openLightbox(2)"></div>
+            <div class="pit-tile" onclick="openLightbox(3)">
+              <video src="modelo-video.mp4" muted playsinline preload="metadata"></video>
+              <div class="play-badge"><i class="fa-solid fa-play"></i></div>
+            </div>
+          </div>
+          <div class="pit-dots" id="pitDots">
+            <span class="dot active" data-index="0"></span>
+            <span class="dot" data-index="1"></span>
+            <span class="dot" data-index="2"></span>
+            <span class="dot" data-index="3"></span>
+          </div>
+
+          <div class="social-row" id="socialRow">
+            <a href="https://www.instagram.com/haojue.ec" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+            <a href="https://wa.me/593999775781" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+            <a href="https://www.facebook.com/share/19XHi3njM3/" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="https://haojue.ec" title="Sitio web"><i class="fa-solid fa-globe"></i></a>
+          </div>
+
+          <button class="box-btn" id="saveContactBtn" type="button">
+            <i class="fa-solid fa-address-card"></i> Guardar contacto
+          </button>
+
+          <div class="foot-row">
+            <span class="company">HAOJUE</span>
+            <span class="tap-hint">TOCA PARA VER MÁS ›</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="face face-back">
+        <div class="checker-strip"></div>
+        <div class="back-body">
+          <div class="flag-medal">
+            <svg viewBox="0 0 80 80">
+              <path class="check-path" d="M20 42 L34 56 L60 24" pathLength="1"/>
+            </svg>
+          </div>
+
+          <div class="qr-holder" id="qrcode"></div>
+
+          <div class="back-copy">
+            <p class="verified-label">Licencia verificada</p>
+            <p class="site" id="siteOut">haojue.ec</p>
+          </div>
+        </div>
+        <div class="checker-strip"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <p class="tap-caption">Toca la tarjeta para ver el código QR</p>
+
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-close" id="lightboxClose"><i class="fa-solid fa-xmark"></i></div>
+    <div class="lightbox-nav lightbox-prev" id="lightboxPrev"><i class="fa-solid fa-chevron-left"></i></div>
+    <div class="lightbox-nav lightbox-next" id="lightboxNext"><i class="fa-solid fa-chevron-right"></i></div>
+    <div id="lightboxContent"></div>
+  </div>
+
+<script>
+  // --- Galería / Lightbox / Puntitos ---
+  const gallery = [
+    { type:'image', src:'modelo-1.jpg' },
+    { type:'image', src:'modelo-2.jpg' },
+    { type:'image', src:'modelo-3.jpg' },
+    { type:'video', src:'modelo-video.mp4' }
+  ];
+  let currentIndex = 0;
+  const lightbox = document.getElementById('lightbox');
+  const lightboxContent = document.getElementById('lightboxContent');
+  const pitStrip = document.getElementById('pitStrip');
+  const dots = Array.from(document.querySelectorAll('.pit-dots .dot'));
+
+  function renderLightbox(){
+    const item = gallery[currentIndex];
+    lightboxContent.innerHTML = '';
+    if (item.type === 'image') {
+      const img = document.createElement('img');
+      img.src = item.src;
+      lightboxContent.appendChild(img);
+    } else {
+      const video = document.createElement('video');
+      video.src = item.src;
+      video.controls = true;
+      video.autoplay = true;
+      video.playsInline = true;
+      lightboxContent.appendChild(video);
+    }
+  }
+
+  window.openLightbox = function(index){
+    currentIndex = index;
+    renderLightbox();
+    lightbox.classList.add('open');
+  };
+
+  function closeLightbox(){
+    lightbox.classList.remove('open');
+    lightboxContent.innerHTML = ''; // detiene el video si estaba reproduciéndose
+  }
+
+  document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
+
+  document.getElementById('lightboxPrev').addEventListener('click', (e) => {
+    e.stopPropagation();
+    currentIndex = (currentIndex - 1 + gallery.length) % gallery.length;
+    renderLightbox();
+  });
+  document.getElementById('lightboxNext').addEventListener('click', (e) => {
+    e.stopPropagation();
+    currentIndex = (currentIndex + 1) % gallery.length;
+    renderLightbox();
+  });
+
+  // Evita que tocar la galería voltee la tarjeta
+  pitStrip.addEventListener('click', (e) => e.stopPropagation());
+
+  // Puntitos: se activan según qué miniatura está centrada al deslizar
+  function updateActiveDot(){
+    const tileWidth = pitStrip.children[0].getBoundingClientRect().width + 6; // +gap
+    const idx = Math.round(pitStrip.scrollLeft / tileWidth);
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  }
+  let scrollTimeout;
+  pitStrip.addEventListener('scroll', () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(updateActiveDot, 60);
+  });
+
+  dots.forEach((dot, i) => {
+    dot.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tileWidth = pitStrip.children[0].getBoundingClientRect().width + 6;
+      pitStrip.scrollTo({ left: tileWidth * i, behavior: 'smooth' });
+    });
+  });
+
+  const cardEl = document.getElementById('cardEl');
+  const checkPath = document.querySelector('.check-path');
+  cardEl.addEventListener('click', () => {
+    cardEl.classList.toggle('flipped');
+    if (cardEl.classList.contains('flipped')) {
+      checkPath.classList.remove('animate');
+      void checkPath.getBoundingClientRect(); // fuerza el reinicio de la animación
+      checkPath.classList.add('animate');
+    }
+  });
+
+  // ⚠️ CAMBIAR ESTA URL cuando publiques en Cloudflare Pages, para que el QR
+  // abra ESTA tarjeta digital en el celular de quien lo escanee (no la web de la empresa).
+  // Ejemplo: 'https://haojue-geraldo.pages.dev'
+  const URL_TARJETA = 'PON-AQUI-TU-URL-DE-CLOUDFLARE-PAGES';
+
+  new QRCode(document.getElementById('qrcode'), {
+    text: URL_TARJETA,
+    width: 104, height: 104,
+    colorDark: '#0B0C0E',
+    colorLight: '#FFFFFF',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+  document.getElementById('siteOut').textContent = URL_TARJETA.replace(/^https?:\/\//, '');
+
+  document.getElementById('socialRow').addEventListener('click', function(e){
+    if (e.target.closest('a')) {
+      e.stopPropagation();
+    }
+  });
+
+  document.getElementById('saveContactBtn').addEventListener('click', function(e){
+    e.stopPropagation();
+    const vcard = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      'N:Ginocchio;Geraldo;;;',
+      'FN:Geraldo Ginocchio',
+      'ORG:Haojue Motorcycles',
+      'TITLE:Asesor de Ventas',
+      'TEL;TYPE=CELL:+593969279746',
+      'URL:https://haojue.ec',
+      'END:VCARD'
+    ].join('\n');
+    const blob = new Blob([vcard], { type: 'text/vcard' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Geraldo-Ginocchio-Haojue.vcf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+</script>
+</body>
+</html>
