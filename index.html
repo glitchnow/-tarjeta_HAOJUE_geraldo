@@ -111,17 +111,16 @@
   }
   .section-label i{ color: var(--brand-accent); font-size:8px; }
 
+  .pit-viewport{ overflow:hidden; width:100%; }
   .pit-strip{
-    display:flex; gap:6px; overflow-x:auto; scroll-snap-type:x mandatory;
-    scrollbar-width:none; -ms-overflow-style:none; padding-bottom:2px;
-    touch-action:pan-x;
+    display:flex; gap:6px;
+    will-change:transform;
   }
-  .pit-strip::-webkit-scrollbar{ display:none; }
   .pit-tile{
     flex:0 0 44%; aspect-ratio:1; border-radius:5px; background:rgba(255,255,255,0.04);
     display:flex; align-items:center; justify-content:center; color:rgba(242,240,234,0.28); font-size:13px;
     border:1px solid rgba(242,240,234,0.1); position:relative; overflow:hidden; cursor:pointer;
-    scroll-snap-align:start; background-size:cover; background-position:center; padding:0;
+    background-size:cover; background-position:center; padding:0;
   }
   .pit-tile::after{
     content:''; position:absolute; top:0; left:0; width:9px; height:9px;
@@ -291,14 +290,16 @@
 
         <div class="pit-lane">
           <p class="section-label"><i class="fa-solid fa-flag-checkered"></i> Modelos destacados</p>
-          <div class="pit-strip" id="pitStrip">
-            <!-- Sube estos 4 archivos junto al index.html: 3 fotos + 1 video -->
-            <div class="pit-tile" style="background-image:url('modelo-1.jpeg')" onclick="openLightbox(0)"></div>
-            <div class="pit-tile" style="background-image:url('modelo-2.jpeg')" onclick="openLightbox(1)"></div>
-            <div class="pit-tile" style="background-image:url('modelo-3.jpeg')" onclick="openLightbox(2)"></div>
-            <div class="pit-tile" onclick="openLightbox(3)">
-              <video src="modelo-video.mp4" muted playsinline preload="metadata"></video>
-              <div class="play-badge"><i class="fa-solid fa-play"></i></div>
+          <div class="pit-viewport" id="pitViewport">
+            <div class="pit-strip" id="pitStrip">
+              <!-- Sube estos 4 archivos junto al index.html: 3 fotos + 1 video -->
+              <div class="pit-tile" style="background-image:url('modelo-1.jpeg')" data-index="0"></div>
+              <div class="pit-tile" style="background-image:url('modelo-2.jpeg')" data-index="1"></div>
+              <div class="pit-tile" style="background-image:url('modelo-3.jpeg')" data-index="2"></div>
+              <div class="pit-tile" data-index="3">
+                <video src="modelo-video.mp4" muted playsinline preload="metadata"></video>
+                <div class="play-badge"><i class="fa-solid fa-play"></i></div>
+              </div>
             </div>
           </div>
           <div class="pit-dots" id="pitDots">
@@ -373,7 +374,9 @@
   let currentIndex = 0;
   const lightbox = document.getElementById('lightbox');
   const lightboxContent = document.getElementById('lightboxContent');
+  const pitViewport = document.getElementById('pitViewport');
   const pitStrip = document.getElementById('pitStrip');
+  const tiles = Array.from(pitStrip.children);
   const dots = Array.from(document.querySelectorAll('.pit-dots .dot'));
 
   function renderLightbox(){
@@ -393,11 +396,11 @@
     }
   }
 
-  window.openLightbox = function(index){
+  function openLightbox(index){
     currentIndex = index;
     renderLightbox();
     lightbox.classList.add('open');
-  };
+  }
 
   function closeLightbox(){
     lightbox.classList.remove('open');
@@ -418,28 +421,83 @@
     renderLightbox();
   });
 
-  // Evita que tocar la galería voltee la tarjeta
-  pitStrip.addEventListener('click', (e) => e.stopPropagation());
+  // --- Carrusel: deslizamiento manual con touch, más confiable que el scroll nativo ---
+  let slideIndex = 0;
+  let tileStep = 0; // ancho de una miniatura + gap, en px
+  let dragStartX = 0;
+  let dragCurrentX = 0;
+  let dragging = false;
+  let baseOffset = 0; // offset ya aplicado antes de empezar a arrastrar
 
-  // Puntitos: se activan según qué miniatura está centrada al deslizar
-  function updateActiveDot(){
-    const tileWidth = pitStrip.children[0].getBoundingClientRect().width + 6; // +gap
-    const idx = Math.round(pitStrip.scrollLeft / tileWidth);
-    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  function measure(){
+    const gap = 6;
+    tileStep = tiles[0].getBoundingClientRect().width + gap;
   }
-  let scrollTimeout;
-  pitStrip.addEventListener('scroll', () => {
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(updateActiveDot, 60);
+
+  function goToSlide(index, animate){
+    slideIndex = Math.max(0, Math.min(tiles.length - 1, index));
+    pitStrip.style.transition = animate ? 'transform .3s cubic-bezier(.2,.8,.2,1)' : 'none';
+    pitStrip.style.transform = `translateX(${-slideIndex * tileStep}px)`;
+    baseOffset = -slideIndex * tileStep;
+    dots.forEach((d, i) => d.classList.toggle('active', i === slideIndex));
+  }
+
+  pitViewport.addEventListener('touchstart', (e) => {
+    measure();
+    dragging = true;
+    dragStartX = e.touches[0].clientX;
+    dragCurrentX = dragStartX;
+    pitStrip.style.transition = 'none';
+  }, { passive: true });
+
+  pitViewport.addEventListener('touchmove', (e) => {
+    if (!dragging) return;
+    dragCurrentX = e.touches[0].clientX;
+    const delta = dragCurrentX - dragStartX;
+    pitStrip.style.transform = `translateX(${baseOffset + delta}px)`;
+  }, { passive: true });
+
+  pitViewport.addEventListener('touchend', (e) => {
+    if (!dragging) return;
+    dragging = false;
+    const delta = dragCurrentX - dragStartX;
+    if (Math.abs(delta) > 35) {
+      goToSlide(delta < 0 ? slideIndex + 1 : slideIndex - 1, true);
+    } else {
+      goToSlide(slideIndex, true); // vuelve a acomodarse si el arrastre fue muy chico
+    }
+    // Si apenas se movió el dedo, se trata como un toque: abre el lightbox
+    if (Math.abs(delta) < 8 && e.changedTouches && e.changedTouches[0]) {
+      const touch = e.changedTouches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      const tileEl = el ? el.closest('.pit-tile') : null;
+      if (tileEl) openLightbox(Number(tileEl.dataset.index));
+    }
+  });
+
+  // Para desktop / mouse (por si alguien lo abre en una compu)
+  tiles.forEach((tile) => {
+    tile.addEventListener('click', (e) => {
+      if (window.matchMedia('(hover: hover)').matches) {
+        e.stopPropagation();
+        openLightbox(Number(tile.dataset.index));
+      }
+    });
   });
 
   dots.forEach((dot, i) => {
     dot.addEventListener('click', (e) => {
       e.stopPropagation();
-      const tileWidth = pitStrip.children[0].getBoundingClientRect().width + 6;
-      pitStrip.scrollTo({ left: tileWidth * i, behavior: 'smooth' });
+      measure();
+      goToSlide(i, true);
     });
   });
+
+  window.addEventListener('resize', () => { measure(); goToSlide(slideIndex, false); });
+  setTimeout(measure, 50);
+
+  // Evita que tocar/deslizar la galería voltee la tarjeta
+  pitViewport.addEventListener('click', (e) => e.stopPropagation());
 
   const cardEl = document.getElementById('cardEl');
   const sealPieces = document.querySelectorAll('.flag-medal, .seal-ring, .check-path, .pulse-ring');
@@ -494,6 +552,13 @@
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   });
+
+  // Registro del service worker (ayuda a que Android instale esto como app real)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
 </script>
 </body>
 </html>
