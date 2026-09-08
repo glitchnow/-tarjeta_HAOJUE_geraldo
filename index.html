@@ -259,9 +259,9 @@
           <p class="section-label"><i class="fa-solid fa-flag-checkered"></i> Modelos destacados</p>
           <div class="pit-strip" id="pitStrip">
             <!-- Sube estos 4 archivos junto al index.html: 3 fotos + 1 video -->
-            <div class="pit-tile" style="background-image:url('modelo-1.jpg')" onclick="openLightbox(0)"></div>
-            <div class="pit-tile" style="background-image:url('modelo-2.jpg')" onclick="openLightbox(1)"></div>
-            <div class="pit-tile" style="background-image:url('modelo-3.jpg')" onclick="openLightbox(2)"></div>
+            <div class="pit-tile" style="background-image:url('modelo-1.jpeg')" onclick="openLightbox(0)"></div>
+            <div class="pit-tile" style="background-image:url('modelo-2.jpeg')" onclick="openLightbox(1)"></div>
+            <div class="pit-tile" style="background-image:url('modelo-3.jpeg')" onclick="openLightbox(2)"></div>
             <div class="pit-tile" onclick="openLightbox(3)">
               <video src="modelo-video.mp4" muted playsinline preload="metadata"></video>
               <div class="play-badge"><i class="fa-solid fa-play"></i></div>
@@ -326,9 +326,9 @@
 <script>
   // --- Galería / Lightbox / Puntitos ---
   const gallery = [
-    { type:'image', src:'modelo-1.jpg' },
-    { type:'image', src:'modelo-2.jpg' },
-    { type:'image', src:'modelo-3.jpg' },
+    { type:'image', src:'modelo-1.jpeg' },
+    { type:'image', src:'modelo-2.jpeg' },
+    { type:'image', src:'modelo-3.jpeg' },
     { type:'video', src:'modelo-video.mp4' }
   ];
   let currentIndex = 0;
@@ -416,7 +416,7 @@
   // ⚠️ CAMBIAR ESTA URL cuando publiques en Cloudflare Pages, para que el QR
   // abra ESTA tarjeta digital en el celular de quien lo escanee (no la web de la empresa).
   // Ejemplo: 'https://haojue-geraldo.pages.dev'
-  const URL_TARJETA = 'PON-AQUI-TU-URL-DE-CLOUDFLARE-PAGES';
+  const URL_TARJETA = 'https://tarjeta-haojue-geraldo.gianfranco-ginocchio15.workers.dev';
 
   new QRCode(document.getElementById('qrcode'), {
     text: URL_TARJETA,
