@@ -425,8 +425,10 @@
   let tileStep = 0; // ancho de una miniatura + gap, en px
   let dragStartX = 0;
   let dragCurrentX = 0;
-  let dragging = false;
-  let baseOffset = 0; // offset ya aplicado antes de empezar a arrastrar
+  let isDragging = false;   // true solo si el dedo se movió lo suficiente como para considerarse arrastre
+  let touchActive = false;  // true durante todo el gesto, desde que el dedo toca hasta que se levanta
+  let baseOffset = 0;
+  const DRAG_THRESHOLD = 12; // px de movimiento antes de considerarlo un arrastre (no un toque)
 
   function measure(){
     const gap = 6;
@@ -443,44 +445,41 @@
 
   pitViewport.addEventListener('touchstart', (e) => {
     measure();
-    dragging = true;
+    touchActive = true;
+    isDragging = false;
     dragStartX = e.touches[0].clientX;
     dragCurrentX = dragStartX;
     pitStrip.style.transition = 'none';
   }, { passive: true });
 
   pitViewport.addEventListener('touchmove', (e) => {
-    if (!dragging) return;
+    if (!touchActive) return;
     dragCurrentX = e.touches[0].clientX;
     const delta = dragCurrentX - dragStartX;
-    pitStrip.style.transform = `translateX(${baseOffset + delta}px)`;
+    if (Math.abs(delta) > DRAG_THRESHOLD) isDragging = true;
+    if (isDragging) {
+      pitStrip.style.transform = `translateX(${baseOffset + delta}px)`;
+    }
   }, { passive: true });
 
-  pitViewport.addEventListener('touchend', (e) => {
-    if (!dragging) return;
-    dragging = false;
+  pitViewport.addEventListener('touchend', () => {
+    touchActive = false;
+    if (!isDragging) return; // fue un toque simple: se deja que el 'click' normal abra el lightbox
     const delta = dragCurrentX - dragStartX;
     if (Math.abs(delta) > 35) {
       goToSlide(delta < 0 ? slideIndex + 1 : slideIndex - 1, true);
     } else {
       goToSlide(slideIndex, true); // vuelve a acomodarse si el arrastre fue muy chico
     }
-    // Si apenas se movió el dedo, se trata como un toque: abre el lightbox
-    if (Math.abs(delta) < 8 && e.changedTouches && e.changedTouches[0]) {
-      const touch = e.changedTouches[0];
-      const el = document.elementFromPoint(touch.clientX, touch.clientY);
-      const tileEl = el ? el.closest('.pit-tile') : null;
-      if (tileEl) openLightbox(Number(tileEl.dataset.index));
-    }
   });
 
-  // Para desktop / mouse (por si alguien lo abre en una compu)
+  // El click normal (funciona igual para touch, mouse y trackpad) abre el lightbox,
+  // salvo que el toque haya sido en realidad un arrastre para deslizar el carrusel.
   tiles.forEach((tile) => {
     tile.addEventListener('click', (e) => {
-      if (window.matchMedia('(hover: hover)').matches) {
-        e.stopPropagation();
-        openLightbox(Number(tile.dataset.index));
-      }
+      e.stopPropagation();
+      if (isDragging) return;
+      openLightbox(Number(tile.dataset.index));
     });
   });
 
